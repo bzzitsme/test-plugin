@@ -17,3 +17,11 @@ work
 .DS_Store
 
 .github
+
+.mvn
+   
+# Compiled class file
+*.class
+
+# Log file
+*.log
