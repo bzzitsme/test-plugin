@@ -1,7 +1,5 @@
 package io.jenkins.plugins.sample;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
@@ -12,10 +10,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Example of Jenkins global configuration.
@@ -23,7 +19,9 @@ import java.util.regex.Pattern;
 @Extension
 public class SampleConfiguration extends GlobalConfiguration {
 
-    /** @return the singleton instance */
+    /**
+     * @return the singleton instance
+     */
     public static SampleConfiguration get() {
         return ExtensionList.lookupSingleton(SampleConfiguration.class);
     }
@@ -31,8 +29,6 @@ public class SampleConfiguration extends GlobalConfiguration {
     private String name;
     private String description;
     private List<Category> categories;
-    
-    private static Pattern alphabetSpaceRegex = Pattern.compile("^[ A-Za-z]+$");
 
     public SampleConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -42,42 +38,40 @@ public class SampleConfiguration extends GlobalConfiguration {
     public String getName() {
         return name;
     }
+
     public String getDescription() {
         return description;
     }
 
     @DataBoundSetter
     public void setName(String name) {
-        if (!validateWithRegex(name)) {
+        if (!Util.validateWithRegex(name)) {
             return;
         }
         this.name = name;
         save();
     }
+
     @DataBoundSetter
     public void setDescription(String description) {
-        if (!validateWithRegex(description)) {
+        if (!Util.validateWithRegex(description)) {
             return;
         }
         this.description = description;
         save();
     }
-    
+
     public FormValidation doCheckName(@QueryParameter String name) {
-        if (!validateWithRegex(name)) {
+        if (!Util.validateWithRegex(name)) {
             return FormValidation.warning("Name should contain only lowercase and uppercase letters and space");
         }
         return FormValidation.ok();
     }
 
-    private boolean validateWithRegex(String value) {
-        return alphabetSpaceRegex.matcher(name).matches();
-    }
-    
     public synchronized List<Category> getCategories() {
         return categories == null ? Collections.emptyList() : Collections.unmodifiableList(categories);
     }
-    
+
     public synchronized void removeCategories(List<Category> categories) {
         List<Category> categories_ = new ArrayList<>(getCategories());
         categories.removeAll(categories);
@@ -92,6 +86,7 @@ public class SampleConfiguration extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        // validation which allows to remove whole category list
         if (!json.containsKey("categories")) {
             json.put("categories", Collections.emptyList());
         }
