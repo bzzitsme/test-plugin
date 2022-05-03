@@ -2,7 +2,7 @@ package io.jenkins.plugins.sample;
 
 import hudson.tasks.Builder;
 import hudson.util.Secret;
-import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Connection extends Builder {
     
@@ -10,18 +10,25 @@ public class Connection extends Builder {
     private String username;
     private Secret password;
     
-    @DataBoundSetter
-    public void setUrl(String url) {
+    @DataBoundConstructor
+    public Connection(String url, String username, Secret password) {
+        if (!Util.validateAlphabet(username)) {
+            throw new RuntimeException("Username should contain only letters");
+        }
         this.url = url;
-    }
-
-    @DataBoundSetter
-    public void setUsername(String username) {
         this.username = username;
+        this.password = password;
     }
 
-    @DataBoundSetter
-    public void setPassword(Secret password) {
-        this.password = password;
+    public String getUrl() {
+        return url;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public Secret getPassword() {
+        return password;
     }
 }

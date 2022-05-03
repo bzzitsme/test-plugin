@@ -8,28 +8,29 @@
         <f:entry field="description" title="${%Description}">
             <f:textarea/>
         </f:entry>
-    </f:section>
-    <f:section title="${%Categories}">
-        <f:entry>
-            <f:repeatableProperty field="categories">
-                <f:entry title="">
-                    <div align="right">
-                        <f:repeatableDeleteButton/>
-                    </div>
-                </f:entry>
-            </f:repeatableProperty>
-        </f:entry>
-    </f:section>
 
-    <f:optionalBlock name="dynamic" title="Connection data">
-        <f:entry field="url" title="URL">
-            <f:textbox field="url" name="url" value="${it.url}"/>
-        </f:entry>
-        <f:entry field="username" title="Username">
-            <f:textbox field="username" name="username" value="${it.username}"/>
-        </f:entry>
-        <f:entry field="password" title="Password">
-            <f:password field="password"/>
-        </f:entry>
-    </f:optionalBlock>
+        <f:section title="${%Categories}">
+            <f:entry>
+                <f:repeatableProperty field="categories">
+                    <f:entry title="">
+                        <div align="right">
+                            <f:repeatableDeleteButton/>
+                        </div>
+                    </f:entry>
+                </f:repeatableProperty>
+            </f:entry>
+        </f:section>
+
+        <f:optionalBlock checked="" field="connection" name="connection" title="Connection data">
+            <f:entry field="url" title="URL">
+                <f:textbox value="${instance.connection.url}"/>
+            </f:entry>
+            <f:entry field="username" title="Username">
+                <f:textbox value="${instance.connection.username}"/>
+            </f:entry>
+            <f:entry field="password" title="Password">
+                <f:password value="${instance.connection.password}"/>
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
 </j:jelly>

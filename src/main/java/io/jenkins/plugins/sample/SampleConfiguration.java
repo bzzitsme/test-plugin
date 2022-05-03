@@ -3,7 +3,6 @@ package io.jenkins.plugins.sample;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
-import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -18,7 +17,7 @@ import java.util.List;
  * Example of Jenkins global configuration.
  */
 @Extension
-public class SampleConfiguration extends GlobalConfiguration{
+public class SampleConfiguration extends GlobalConfiguration {
 
     /**
      * @return the singleton instance
@@ -30,9 +29,7 @@ public class SampleConfiguration extends GlobalConfiguration{
     private String name;
     private String description;
     private List<Category> categories;
-    private String url;
-    private String username;
-    private Secret password;
+    private Connection connection;
 
     public SampleConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -42,68 +39,36 @@ public class SampleConfiguration extends GlobalConfiguration{
     public String getName() {
         return name;
     }
-
+    
+    @DataBoundSetter
+    public void setName(String name) {
+        if (!Util.validateAlphaSpace(name)) {
+            throw new RuntimeException("Name should contain only letters (non-case sensitive) and spaces");
+        }
+        this.name = name;
+        save();
+    }
+    
     public String getDescription() {
         return description;
     }
 
     @DataBoundSetter
-    public void setName(String name) {
-        if (!Util.validateWithRegex(name)) {
-            return;
-        }
-        this.name = name;
-        save();
-    }
-
-    @DataBoundSetter
     public void setDescription(String description) {
-        if (!Util.validateWithRegex(description)) {
+        if (!Util.validateAlphaSpace(description)) {
             return;
         }
         this.description = description;
         save();
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public Secret getPassword() {
-        return password;
-    }
-    
-    @DataBoundSetter
-    public void setUrl(String url) {
-        this.url = url;
-        save();
+    public Connection getConnection() {
+        return connection;
     }
 
     @DataBoundSetter
-    public void setUsername(String username) {
-        this.username = username;
-        save();
-    }
-
-    @DataBoundSetter
-    public void setPassword(Secret password) {
-        this.password = password;
-        save();
-    }
-
-    public FormValidation doCheckName(@QueryParameter String name) {
-        if (!Util.validateWithRegex(name)) {
-            return FormValidation.warning("Name should contain only lowercase and uppercase letters and space");
-        }
-        return FormValidation.ok();
-    }
-    
-    public FormValidation doCheckUsername(@QueryParameter String username) {
-        return FormValidation.ok();
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 
     public synchronized List<Category> getCategories() {
@@ -123,5 +88,19 @@ public class SampleConfiguration extends GlobalConfiguration{
             json.put("categories", Collections.emptyList());
         }
         return super.configure(req, json);
+    }
+
+    public FormValidation doCheckName(@QueryParameter String name) {
+        if (!Util.validateAlphaSpace(name)) {
+            return FormValidation.warning("Name should contain only lowercase and uppercase letters and space");
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckUsername(@QueryParameter String username) {
+        if (!Util.validateAlphabet(username)) {
+            return FormValidation.warning("Username should contain only letters");
+        }
+        return FormValidation.ok();
     }
 }
