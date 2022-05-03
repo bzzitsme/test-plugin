@@ -20,4 +20,16 @@
             </f:repeatableProperty>
         </f:entry>
     </f:section>
+
+    <f:optionalBlock name="dynamic" title="Connection data">
+        <f:entry field="url" title="URL">
+            <f:textbox field="url" name="url" value="${it.url}"/>
+        </f:entry>
+        <f:entry field="username" title="Username">
+            <f:textbox field="username" name="username" value="${it.username}"/>
+        </f:entry>
+        <f:entry field="password" title="Password">
+            <f:password field="password"/>
+        </f:entry>
+    </f:optionalBlock>
 </j:jelly>
