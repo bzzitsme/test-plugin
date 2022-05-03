@@ -30,7 +30,6 @@ public class Category extends AbstractDescribableImpl<Category> {
         return name;
     }
 
-
     @Extension
     public static class DescriptorImpl extends Descriptor<Category> {
 
