@@ -21,7 +21,7 @@
             </f:entry>
         </f:section>
 
-        <f:optionalBlock checked="" field="connection" name="connection" title="Connection data">
+        <f:optionalBlock checked="true" field="connection" name="connection" title="Connection data">
             <f:entry field="url" title="URL">
                 <f:textbox value="${instance.connection.url}"/>
             </f:entry>
@@ -32,5 +32,8 @@
                 <f:password value="${instance.connection.password}"/>
             </f:entry>
         </f:optionalBlock>
+        <f:validateButton
+                title="${%Test Connection}" progress="${%Testing...}"
+                method="testConnection" with="url,username,password"/>
     </f:section>
 </j:jelly>
