@@ -3,12 +3,20 @@ package io.jenkins.plugins.sample;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.POST;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +47,7 @@ public class SampleConfiguration extends GlobalConfiguration {
     public String getName() {
         return name;
     }
-    
+
     @DataBoundSetter
     public void setName(String name) {
         if (!Util.validateAlphaSpace(name)) {
@@ -48,7 +56,7 @@ public class SampleConfiguration extends GlobalConfiguration {
         this.name = name;
         save();
     }
-    
+
     public String getDescription() {
         return description;
     }
@@ -69,6 +77,7 @@ public class SampleConfiguration extends GlobalConfiguration {
     @DataBoundSetter
     public void setConnection(Connection connection) {
         this.connection = connection;
+        save();
     }
 
     public synchronized List<Category> getCategories() {
@@ -102,5 +111,21 @@ public class SampleConfiguration extends GlobalConfiguration {
             return FormValidation.warning("Username should contain only letters");
         }
         return FormValidation.ok();
+    }
+
+    @POST
+    public FormValidation doTestConnection(@QueryParameter("url") String url,
+                                           @QueryParameter("username") String username,
+                                           @QueryParameter("password") Secret password) throws URISyntaxException, IOException {
+        URL uri = new URL(url);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) uri.openConnection();
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, Util.toBasicAuth(username, password));
+        int responseCode = httpURLConnection.getResponseCode();
+        if (HttpStatus.OK.value() == responseCode) {
+            return FormValidation.ok("Success");
+        } else {
+            return FormValidation.warning("Connection refused (Http Status: " + responseCode + "), please check your credentials and url");
+        }
     }
 }
