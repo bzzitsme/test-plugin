@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
     <f:section title="${%Onboarding Plugin}">
         <f:entry field="name" title="${%Name}">
             <f:textbox/>
@@ -21,6 +21,9 @@
             </f:entry>
         </f:section>
 
+        <f:entry field="credentialsId" title="${%Credentials}">
+            <c:select/>
+        </f:entry>
         <f:optionalBlock checked="true" field="connection" name="connection" title="Connection data">
             <f:entry field="url" title="URL">
                 <f:textbox value="${instance.connection.url}"/>
@@ -35,5 +38,8 @@
         <f:validateButton
                 title="${%Test Connection}" progress="${%Testing...}"
                 method="testConnection" with="url,username,password"/>
+        <f:validateButton
+                title="${%Test Credential}" progress="${%Testing...}"
+                method="testCredential" with="url,credentialsId"/>
     </f:section>
 </j:jelly>
