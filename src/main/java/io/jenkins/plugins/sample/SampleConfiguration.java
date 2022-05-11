@@ -1,11 +1,21 @@
 package io.jenkins.plugins.sample;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.model.Item;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -17,6 +27,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,10 +49,20 @@ public class SampleConfiguration extends GlobalConfiguration {
     private String description;
     private List<Category> categories;
     private Connection connection;
+    private String credentialsId;
 
     public SampleConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
+    }
+
+    @DataBoundSetter
+    public void setCredentialsId(String credentialsId) {
+        this.credentialsId = credentialsId;
     }
 
     public String getName() {
@@ -127,5 +148,57 @@ public class SampleConfiguration extends GlobalConfiguration {
         } else {
             return FormValidation.warning("Connection refused (Http Status: " + responseCode + "), please check your credentials and url");
         }
+    }
+
+    @POST
+    public FormValidation doTestCredential(@QueryParameter("url") final String urlParam,
+                                           @QueryParameter("credentialsId") final String credentialsId) throws IOException {
+        URL url = new URL(urlParam);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+
+        StringCredentials credential = getCredentialsById(credentialsId);
+        String secretPlaintext = credential.getSecret().getPlainText();
+
+        con.setDoOutput(true);
+        con.getOutputStream().write(secretPlaintext.getBytes(StandardCharsets.UTF_8));
+        int responseCode = con.getResponseCode();
+
+        if (HttpStatus.OK.value() == responseCode) {
+            return FormValidation.ok("Success");
+        } else {
+            return FormValidation.warning("Connection refused (Http Status: " + responseCode + "), please check your credentials and url");
+        }
+
+    }
+
+    public ListBoxModel doFillCredentialsIdItems(
+            @AncestorInPath Item item,
+            @QueryParameter String credentialsId
+    ) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        } else {
+            if (!item.hasPermission(Item.EXTENDED_READ)
+                    && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        return result
+                .includeAs(ACL.SYSTEM, item, StringCredentials.class)
+                .includeCurrentValue(credentialsId);
+    }
+
+    private StringCredentials getCredentialsById(String credentialId) {
+        List<StringCredentials> credentials = CredentialsProvider.lookupCredentials(
+                StringCredentials.class,
+                (Item) null,
+                ACL.SYSTEM,
+                (DomainRequirement) null
+        );
+        return CredentialsMatchers.firstOrNull(credentials, CredentialsMatchers.withId(credentialId));
     }
 }
