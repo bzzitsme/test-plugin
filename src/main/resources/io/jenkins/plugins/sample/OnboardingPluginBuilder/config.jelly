@@ -4,4 +4,13 @@
     <f:entry title="${%Category}">
         <f:select field="categoryId"/>
     </f:entry>
+
+    <f:section title="Last 5 builds">
+        <j:forEach items="${descriptor.builds}" var="item">
+            <li>
+                <a href="${descriptor.getBuildUrl(item.buildId)}">${item.buildId}</a>
+                ${item.category.name}
+            </li>
+        </j:forEach>
+    </f:section>
 </j:jelly>
