@@ -36,25 +36,35 @@ public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep 
     @Override
     public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws InterruptedException, IOException {
         System.out.println(category.getName());
-        ((DescriptorImpl)getDescriptor()).addBuild(run.getExternalizableId(), category);
+        ((DescriptorImpl)getDescriptor()).addBuild(run, category);
+    }
+    
+    public Category getCategory() {
+        return category;
     }
     
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         private Queue<BuildWithCategory> builds = new LinkedList<>();
+        private Map<String, String> categoriesLatestJob = new HashMap<>();
         
-        public void addBuild(String buildId, Category category) {
+        public void addBuild(Run<?, ?> run, Category category) {
             if (Objects.nonNull(builds) && builds.size() >= 5) {
                 builds.remove();
             }
-            builds.add(new BuildWithCategory(buildId, category));
+            builds.add(new BuildWithCategory(run.getExternalizableId(), category));
+            categoriesLatestJob.put(category.getUuid().toString(), run.getParent().getFullName());
             save();
         }
         
         public String getBuildUrl(BuildWithCategory build) {
             Run<?, ?> run = Run.fromExternalizableId(build.getBuildId());
             return run != null ? run.getAbsoluteUrl() : null;
+        }
+        
+        public String getLastJobName(Category category) {
+            return categoriesLatestJob.getOrDefault(category.getUuid().toString(), null);
         }
 
         public DescriptorImpl() {
