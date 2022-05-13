@@ -3,6 +3,7 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <f:entry title="${%Category}">
         <f:select field="categoryId"/>
+        Last job that run with selected category : ${instance.descriptor.getLastJobName(instance.category)}
     </f:entry>
 
     <f:section title="Last 5 builds">
