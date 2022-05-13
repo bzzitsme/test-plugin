@@ -16,8 +16,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep {
@@ -36,10 +36,21 @@ public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep 
     @Override
     public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws InterruptedException, IOException {
         System.out.println(category.getName());
+        ((DescriptorImpl)getDescriptor()).addBuild(run.getExternalizableId(), category);
     }
-
+    
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
+
+        private Queue<BuildWithCategory> builds = new LinkedList<>();
+        
+        public void addBuild(String buildId, Category category) {
+            if (Objects.nonNull(builds) && builds.size() >= 5) {
+                builds.remove();
+            }
+            builds.add(new BuildWithCategory(buildId, category));
+            save();
+        }
 
         public DescriptorImpl() {
             load();
@@ -63,6 +74,37 @@ public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep 
             List<Category> categories = SampleConfiguration.get().getCategories();
             categories.forEach(category -> result.add(category.getName(), category.getUuid().toString()));
             return result;
+        }
+
+        public Queue<BuildWithCategory> getBuilds() {
+            return builds;
+        }
+
+    }
+    
+    public static class BuildWithCategory {
+        String buildId;
+        Category category;
+        
+        public BuildWithCategory(String buildId, Category category) {
+            this.buildId = buildId;
+            this.category = category;
+        }
+
+        public String getBuildId() {
+            return buildId;
+        }
+
+        public void setBuildId(String buildId) {
+            this.buildId = buildId;
+        }
+
+        public Category getCategory() {
+            return category;
+        }
+
+        public void setCategory(Category category) {
+            this.category = category;
         }
     }
 }
