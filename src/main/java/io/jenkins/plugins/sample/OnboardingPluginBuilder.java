@@ -16,8 +16,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
-import java.util.*;
 import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep {
@@ -50,6 +50,11 @@ public class OnboardingPluginBuilder extends Builder implements SimpleBuildStep 
             }
             builds.add(new BuildWithCategory(buildId, category));
             save();
+        }
+        
+        public String getBuildUrl(BuildWithCategory build) {
+            Run<?, ?> run = Run.fromExternalizableId(build.getBuildId());
+            return run != null ? run.getAbsoluteUrl() : null;
         }
 
         public DescriptorImpl() {
